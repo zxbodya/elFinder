@@ -7,15 +7,14 @@
 
 // if Jake fails to detect need libraries try running before: export NODE_PATH=`npm root`
 
-var sys = require('sys'),
-	fs   = require('fs'),
+var fs = require('fs'),
 	path = require('path'),
 	util = require('util'),
 	ugp  = require('uglify-js').parser,
 	ugu  = require('uglify-js').uglify,
 	csso = require('csso');
 
-var dirmode = 0755,
+var	dirmode = 0755,
 	src = __dirname,
 	files = {
 		'elfinder.full.js':
@@ -30,14 +29,14 @@ var dirmode = 0755,
 				path.join(src, 'js', 'jquery.dialogelfinder.js'),
 				path.join(src, 'js', 'i18n', 'elfinder.en.js')
 			]
-			.concat(grep(path.join(src, 'js', 'ui'), '\\.js$'))
-			.concat(grep(path.join(src, 'js', 'commands'), '\\.js$')),
+			.concat(elGrep(path.join(src, 'js', 'ui'), '\\.js$'))
+			.concat(elGrep(path.join(src, 'js', 'commands'), '\\.js$')),
 
-		'elfinder.full.css': grep(path.join(src, 'css'), '\\.css$', 'theme'),
+		'elfinder.full.css': elGrep(path.join(src, 'css'), '\\.css$', '(theme|min|full)\\.css$'),
 
-		'images':	grep(path.join(src, 'img'), '\\.png|\\.gif'),
+		'images':	elGrep(path.join(src, 'img'), '\\.(gif|png)$'),
 
-		'i18n': grep(path.join(src, 'js', 'i18n'), '\\.js', 'elfinder.en.js'),
+		'i18n': elGrep(path.join(src, 'js', 'i18n'), '\\.js$', 'elfinder.en.js'),
 
 		'php':
 			[
@@ -45,6 +44,7 @@ var dirmode = 0755,
 				path.join(src, 'php', 'elFinderConnector.class.php'),
 				path.join(src, 'php', 'elFinderVolumeDriver.class.php'),
 				path.join(src, 'php', 'elFinderVolumeLocalFileSystem.class.php'),
+				path.join(src, 'php', 'elFinderVolumeFTP.class.php'),
 				path.join(src, 'php', 'elFinderVolumeMySQL.class.php'),
 				path.join(src, 'php', 'mime.types'),
 				path.join(src, 'php', 'MySQLStorage.sql')
@@ -58,7 +58,7 @@ var dirmode = 0755,
 	};
 
 // custom functions
-function grep(prefix, mask, exculde) {
+function elGrep(prefix, mask, exculde) {
 	var m = new RegExp(mask);
 	var e = new RegExp(exculde);
 	var o = new Array();
@@ -109,7 +109,7 @@ function getComment() {
 }
 
 // tasks
-desc('Help')
+desc('Help');
 task('default', function(){
 	console.log(
 		"This is elFinder build script, run `jake --tasks` for more info, for a default build run:\n" +
@@ -117,7 +117,7 @@ task('default', function(){
 	);
 });
 
-desc('pre build task')
+desc('pre build task');
 task('prebuild', function(){
 	console.log('build dir:  ' + path.resolve());
 	console.log('src dir:    ' + src);
@@ -132,14 +132,14 @@ task('prebuild', function(){
 	//jake.Task['elfinder'].invoke();
 });
 
-desc('build elFinder')
-task({'elfinder': ['prebuild', 'css/elfinder.min.css', 'js/elfinder.min.js', 'misc']}, function(){
+desc('build elFinder');
+task('elfinder', ['prebuild', 'css/elfinder.min.css', 'js/elfinder.min.js', 'misc'], function(){
 	console.log('elFinder build done');
 });
 
 // CSS
-desc('concat elfinder.full.css')
-file({'css/elfinder.full.css': files['elfinder.full.css']}, function(){
+desc('concat elfinder.full.css');
+file('css/elfinder.full.css', files['elfinder.full.css'], function(){
 	console.log('concat ' + this.name)
 	var data = '';
 	for (f in this.prereqs) {
@@ -152,15 +152,15 @@ file({'css/elfinder.full.css': files['elfinder.full.css']}, function(){
 });
 
 desc('optimize elfinder.min.css');
-file({'css/elfinder.min.css': ['css/elfinder.full.css']}, function () {
+file('css/elfinder.min.css', ['css/elfinder.full.css'], function () {
 	console.log('optimize elfinder.min.css');
 	var css_optimized = csso.justDoIt(fs.readFileSync('css/elfinder.full.css').toString())
 	fs.writeFileSync(this.name, getComment() + css_optimized);
 });
 
 // JS
-desc('concat elfinder.full.js')
-file({'js/elfinder.full.js': files['elfinder.full.js']}, function(){
+desc('concat elfinder.full.js');
+file('js/elfinder.full.js', files['elfinder.full.js'], function(){
 	console.log('concat elfinder.full.js');
 	var strict = new RegExp('"use strict"\;?\n?');
 	var elf = files['elfinder.full.js'];
@@ -177,7 +177,7 @@ file({'js/elfinder.full.js': files['elfinder.full.js']}, function(){
 });
 
 desc('uglify elfinder.min.js');
-file({'js/elfinder.min.js': ['js/elfinder.full.js']}, function () {
+file('js/elfinder.min.js', ['js/elfinder.full.js'], function () {
 	console.log('uglify elfinder.min.js');
 	var ast = ugp.parse(fs.readFileSync('js/elfinder.full.js').toString()); // parse code and get the initial AST
 	ast = ugu.ast_mangle(ast); // get a new AST with mangled names
@@ -187,7 +187,7 @@ file({'js/elfinder.min.js': ['js/elfinder.full.js']}, function () {
 });
 
 // IMG + I18N + PHP
-desc('copy misc files')
+desc('copy misc files');
 task('misc', function(){
 	console.log('copy misc files');
 	var cf = files['images']
@@ -211,29 +211,30 @@ task('misc', function(){
 	copyFile(cs, cd);
 });
 
-// other
-desc('clean build dir')
+// clean task
+desc('clean build dir');
 task('clean', function(){
 	console.log('cleaning the floor')
 	uf = ['js/elfinder.full.js', 'js/elfinder.min.js', 'css/elfinder.full.css', 'css/elfinder.min.css'];
 	// clean images, js/i18n and php only if we are not in src
 	if (src != path.resolve()) {
 		uf = uf
-			.concat(grep('img', '\\.png|\\.gif'))
-			.concat(grep(path.join('js', 'i18n')))
+			.concat(elGrep('img', '\\.png|\\.gif'))
+			.concat(elGrep(path.join('js', 'i18n')))
 			.concat(path.join('css', 'theme.css'))
-			.concat(grep('php'))
+			.concat(elGrep('php'))
 			.concat([path.join('js', 'proxy', 'elFinderSupportVer1.js'), 'Changelog', 'README.md']);
 	}
+	if (path.join(src, 'build') != path.resolve()) {
+		uf = uf.concat('elfinder.html');
+	}
+
 	for (f in uf) {
 		var file = uf[f];
 		if (path.existsSync(file)) {
 			console.log('\tunlink ' + file);
 			fs.unlinkSync(file);
 		}
-	}
-	if (path.join(src, 'build') != path.resolve()) {
-		fs.unlinkSync('elfinder.html');
 	}
 	if (src != path.resolve()) {
 		var ud = ['css', path.join('js', 'proxy'), path.join('js', 'i18n'), 'js', 'img', 'php', 'files'];
@@ -245,5 +246,42 @@ task('clean', function(){
 			}
 		}
 	}
+});
+
+// build release archives tasks
+desc('needed to fire "package" task');
+task('internal-release', ['package'], function(){
+	console.log('release finished');
+});
+
+desc('make release tarballs');
+task('release', function(){
+	jake.exec(['git describe --tags > .version'], function(){
+		var version = fs.readFileSync('.version').toString().replace(/\n$/, '');
+		fs.unlinkSync('.version');
+		console.log('Version ' + version);
+		var t = new jake.PackageTask('elfinder', version, function(){
+			var fls = files['php']
+				.concat(path.join('php', 'connector.php'))
+				.concat(files['images'])
+				.concat(files['i18n'])
+				.concat(path.join('js', 'elfinder.min.js'))
+				.concat(files['misc'])
+				.concat('elfinder.html')
+				.concat(path.join('css', 'elfinder.min.css'))
+				.concat(path.join('css', 'theme.css'))
+				.map(function(x){ return x.replace(src + '/', ''); });
+			this.packageFiles.include(fls);
+			this.needTarGz = true;
+			this.needZip = true;
+		});
+		console.log('prepack done');
+		jake.Task['internal-release'].invoke();
+	});
+});
+
+desc('full cycle build release');
+task('full', ['clean', 'elfinder', 'release'], function(){
+	console.log('go full');
 });
 
