@@ -637,7 +637,7 @@
 			this.eventsManager.lock = true;
 			this.quickLook.hide();
 			this.quickLook.win.remove();
-			if (this.dialog) {
+			if (this.dialog && $( this.dialog ).is(":ui-dialog")) {
 				this.dialog.dialog('destroy');
 				this.view.win.parent().remove();
 			} else {

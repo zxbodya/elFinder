@@ -106,7 +106,7 @@ elFinder.prototype.eventsManager = function(fm, el) {
 			});
 			
 			this.fm.view.plc.droppable({
-				accept    : '(div,tr).directory',
+				accept    : 'div.directory, tr.directory',
 				tolerance : 'pointer',
 				over      : function() { $(this).addClass('el-finder-droppable'); },
 				out       : function() { $(this).removeClass('el-finder-droppable'); },
