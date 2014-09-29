@@ -55,8 +55,9 @@ elfinder_css_obj=	${SRC}/css/elfinder.css
 
 elfinder_js=		elfinder.full.js
 elfinder_js_min=	elfinder.min.js
-elfinder_js_obj=	${SRC}/js/elFinder.js \
-					${SRC}/js/elFinder.view.js \
+elfinder_js_obj=	${SRC}/js/jQuery.bowser.js \
+                    ${SRC}/js/elFinder.js \
+                    ${SRC}/js/elFinder.view.js \
 					${SRC}/js/elFinder.ui.js \
 					${SRC}/js/elFinder.quickLook.js \
 					${SRC}/js/elFinder.eventsManager.js

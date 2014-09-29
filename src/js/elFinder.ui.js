@@ -909,7 +909,8 @@ elFinder.prototype.ui.prototype.commands = {
 						buttons     : {
 							Cancel : function() { $(this).dialog('close'); },
 							Ok     : function() {
-								if (!$(':file[value]', f).length) {
+
+                if (!$(':file', f).val()) {
 									return error(self.fm.i18n('Select at least one file to upload'));
 								}
 								setTimeout(function() {

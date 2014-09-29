@@ -74,9 +74,9 @@ elFinder.prototype.eventsManager = function(fm, el) {
 			}
 		});
 
-		$('input,textarea').live('focus', function(e) {
+		$('input,textarea').on('focus', function(e) {
 			self.lock = true;
-		}).live('blur', function(e) {
+		}).on('blur', function(e) {
 			self.lock = false;
 		});
 
